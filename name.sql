@@ -1,9 +1,9 @@
 WITH edited_names AS (
   SELECT
-    original.name,
+    name,
     original.year,
-    original.count,
-    100 * original.count / yearly_totals.total_count AS occupation
+    count,
+    100 * count / yearly_totals.total_count AS occupation
   FROM
     (
       SELECT name, year, count
@@ -17,23 +17,24 @@ WITH edited_names AS (
   ON
     original.year = yearly_totals.year
 ),
-ranked_names AS (
+group_by_name AS (
   SELECT
     name,
-    MAX(occupation) as max_occupation,
+    MAX(occupation) AS max_occupation,
     ROW_NUMBER() OVER (ORDER BY max_occupation DESC) AS rank
   FROM edited_names
   GROUP BY name
 )
 SELECT
   e.name,
-  e.year,
-  e.count,
-  e.occupation,
-  r.max_occupation,
-  r.rank
+  year,
+  count,
+  occupation,
+  max_occupation,
+  rank
 FROM edited_names e
-JOIN ranked_names r
-ON e.name = r.name
-WHERE r.rank <= 10
+JOIN group_by_name n
+  ON e.name = n.name
+
+WHERE n.rank <= 10
 ;
